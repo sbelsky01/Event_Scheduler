@@ -1,42 +1,61 @@
 package eventScheduler;
 
 import java.time.*;
+import java.sql.*;
 import java.time.format.*;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class Main {
 
+	private static java.sql.Connection con;
+
 	public static void main(String[] args) {
 
-		Scanner keyboard = new Scanner(System.in);
-		Calendar calendar = new Calendar();
+		try {
+			Properties props = new Properties();
+			props.setProperty("sslmode", "require");
+			props.setProperty("user", "root");
+			props.setProperty("password", "v2_3wFD6_gDuGkwzwqcRNAD289p77pKf");
+			con = DriverManager.getConnection("jdbc:postgresql://db.bit.io/ShiraNeumann.Calendar", props);
 
-		int choice = 0;
+			int id = userSignIn();
 
-		while (choice != 5) {
+			Scanner keyboard = new Scanner(System.in);
+			Calendar calendar = new Calendar(con, id);
 
-			choice = menu(keyboard);
+			int choice = 0;
 
-			switch (choice) {
-			case 1:
-				addEvent(keyboard, calendar);
-				break;
-			case 2:
-				removeEvent();
-				break;
-			case 3:
-				modifyEvent();
-				break;
+			while (choice != 5) {
 
-			case 4:
-				displayEvents(calendar);
-				break;
+				choice = menu(keyboard);
+
+				switch (choice) {
+				case 1:
+					getEventInfo(keyboard, calendar);
+					break;
+				case 2:
+					removeEvent(keyboard, calendar);
+					break;
+				case 3:
+					modifyEvent();
+					break;
+
+				case 4:
+					displayEvents(calendar);
+					break;
+				}
+
 			}
-
+			System.exit(0);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
-		System.exit(0);
+	}
+
+	public static int userSignIn() {
+		return 1;
 	}
 
 	public static int menu(Scanner keyboard) {
@@ -59,8 +78,7 @@ public class Main {
 		return choice;
 	}
 
-	private static void addEvent(Scanner keyboard, Calendar calendar) {
-		// TODO Auto-generated method stub
+	public static void getEventInfo(Scanner keyboard, Calendar calendar) {
 
 		// getting userInput to create new event = diff fields
 		System.out.println("\nPlease enter the address: ");
@@ -80,42 +98,42 @@ public class Main {
 
 		System.out.println("\nPlease enter your appointment details: ");
 		System.out.print("Event date (yyyy-mm-dd): ");
-		
+
 		boolean tryAgain;
 		String dateString = null;
 		LocalDate date = null;
-		
+
 		do {
 			tryAgain = false;
 			dateString = keyboard.nextLine();
 			try {
 				date = LocalDate.parse(dateString);
-			}catch(DateTimeParseException e) {
+			} catch (DateTimeParseException e) {
 				tryAgain = true;
 				System.out.print("Please use the proper format: ");
 			}
-		}while(tryAgain);
-		
+		} while (tryAgain);
+
 		System.out.print("Event name: ");
 		String eventName = keyboard.nextLine();
-		
+
 		System.out.print("Event time(hh:mm): ");
-		
+
 		String stringTime = null;
 		LocalTime time = null;
-		
+
 		do {
 			tryAgain = false;
 			stringTime = keyboard.nextLine();
 			stringTime += ":00";
 			try {
 				time = LocalTime.parse(stringTime);
-			}catch(DateTimeParseException e) {
+			} catch (DateTimeParseException e) {
 				tryAgain = true;
 				System.out.print("Please use the proper format: ");
 			}
-		}while(tryAgain);
-		
+		} while (tryAgain);
+
 		System.out.print("How long will the appointment be(in minutes)? ");
 		int min = keyboard.nextInt();
 		keyboard.nextLine();
@@ -123,36 +141,51 @@ public class Main {
 		String notes = keyboard.nextLine();
 
 		Appointment app = new Appointment(date, eventName, time, notes, min, addr);
-		System.out.println("\n" + app + "\n");
+		System.out.println("\nYou entered:\n" + app + "\n");
+		
+		addEvent(app, calendar, keyboard);
+	}
+	
+	public static void addEvent(Appointment app, Calendar calendar, Scanner keyboard) {
+		int overlap = calendar.overlapping(app);
+		if (overlap > 0) {
+			System.out.println("The following event is already scheduled for this time:");
+			calendar.displayEvent(overlap);
+			System.out.print("\nDo you wish to proceed? Yes or no: ");
 
+			if (keyboard.nextLine().toLowerCase().equals("yes")) {
 
-		int checkIfAdd = calendar.putEventInPlace(app);
-		if (checkIfAdd == -1) {
-			System.out.println("There is already an event at this time.");
-			System.out.print("Do you wish to proceed? Yes or no: ");
-			String answer = keyboard.nextLine();
-
-			if (answer.equalsIgnoreCase("Yes")) {
-
-				calendar.forcePutEventInPlace(app);
+				calendar.addEvent(app);
 				System.out.println("\nEvent added\n\n");
 			}
 			else {
 				System.out.println("Action cancelled\n\n");
 			}
-			
+
 		} else {
+			calendar.addEvent(app);
 			System.out.println("\nEvent added\n\n");
 		}
-
 	}
 
-	private static void removeEvent() {
-		// TODO Auto-generated method stub
+	public static void removeEvent(Scanner keyboard, Calendar calendar) {
+		displayEvents(calendar);
+		System.out.println("Which event would you like to remove?");
+		int id = keyboard.nextInt();
 
+		if(calendar.displayEvent(id)) {
+			System.out.println("Are you sure want to delete this event? ");
+			if(keyboard.nextLine().toLowerCase().equals("yes")) {
+				calendar.deleteEvent(id);
+			} else {
+				System.out.println("Action Cancelled");
+			}
+		} else {
+			System.out.println("Invalid event id.");
+		}
 	}
 
-	private static void modifyEvent() {
+	public static void modifyEvent() {
 		// TODO Auto-generated method stub
 
 		// display arrayList of events with numbers, get index from user and give them
@@ -161,29 +194,8 @@ public class Main {
 
 	}
 
-	private static void displayEvents(Calendar calendar) {
-		// TODO Auto-generated method stub
-
-		ArrayList<Appointment> events = calendar.getEvents();
-		
-		System.out.println();
-
-		if (events.size() == 0) {
-			System.out.println("You have no appointments scheduled.");
-		} else {
-			System.out.println("  Scheduled Appointments:");
-			System.out.println("---------------------------\n");
-			
-			for (int i = 0; i < events.size(); i++) {
-
-				System.out.println(events.get(i));
-				System.out.println();
-
-			}
-		}
-		
-		System.out.println();
-
+	public static void displayEvents(Calendar calendar) {
+		calendar.displayEvents();
 	}
 
 }

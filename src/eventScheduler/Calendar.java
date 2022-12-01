@@ -1,106 +1,140 @@
 package eventScheduler;
 
-import java.util.*;
-import java.io.*;
+import java.sql.*;
 
 public class Calendar {
 
-	private ArrayList<Appointment> events;
+	private Connection conn;
+	private int userId;
 
-	public Calendar() {
-
-		this.events = new ArrayList<Appointment>();
+	public Calendar(Connection conn, int id) {
+		this.conn = conn;
+		this.userId = id;
 	}
 
-	public ArrayList<Appointment> getEvents() {
-		ArrayList<Appointment> copy = new ArrayList<Appointment>();
-		Appointment apptCopy;
-		
-		for(int i=0; i<events.size(); i++) {
-			apptCopy = events.get(i).copy();
-			copy.add(apptCopy);
-		}
-		return events;
-	}
-
-	public void addEvents(Appointment e) {
-
-		events.add(e);
-
-	}
-
-	public int putEventInPlace(Appointment event) {
-
-		int i;
-		// loop through the array of events and find the right position
-		for ( i = 0; i < events.size(); i++) {
-
-			int num = events.get(i).getDate().compareTo(event.getDate());
-			
-			if(num == 0) {
-				num = events.get(i).getTime().compareTo(event.getTime());
+	public int overlapping(Appointment appt) {
+		try {
+			String SQL = "SELECT eventid, date, time, duration "
+					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
+					+ "WHERE phe.personid = ? AND date = " + appt.getDate();
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				if(appt.during(rs.getDate(2).toLocalDate(), rs.getTime(3).toLocalTime(), rs.getInt(4))) {
+					return rs.getInt(1);
+				}
 			}
 
-			if (event.during((Appointment) events.get(i))) {
-				
-				
-				return -1;
-	
-			}	
-
-			else if (num > 0) {
-
-				// insert it before the one it's comparing it to
-				events.add(i, event);
-				return 0;
-				
-
-			}
-
+		} catch(SQLException e) {
+			System.out.println(e.getMessage());
 		}
-		
-		if (i == events.size()) {
-			events.add(event);
-			
-		}
-		
-		
-			return 0;
-		
+
+		return 0;
 
 	}
 
-	public void forcePutEventInPlace(Appointment event) {
+	public void addEvent(Appointment appt) {
+		try {
+			int newId;
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT max(e.eventid) FROM event e");
+			newId = rs.next() ? rs.getInt(1)+1 : 1;
 
-		/*int i;
-
-		for (i = 0; i < events.size(); i++) {
-			
-			//should we check here the time, and put in order of that or this is enough?
-			events.add(i, event);
-			break;
-	
-		}*/
-		
-		int i;
-		// loop through the array of events and find the right position
-		for ( i = 0; i < events.size(); i++) {
-
-			int num = events.get(i).getDate().compareTo(event.getDate());
-			
-			if(num == 0) {
-				num = events.get(i).getTime().compareTo(event.getTime());
-			}
-
-			if (num > 0) {
-
-				// insert it before the one it's comparing it to
-				events.add(i, event);
-				break;
-			}
-			
+			//write the insert statement
+			String SQL = "INSERT INTO event (EventId, EventName, StreetNum, StreetName, "
+					+ "City, State, Zip, Date, Time, Duration, Notes) "
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+					+ "INSERT INTO personhasevent (PersonId, EventId) VALUES (?, ?)";
+			//prepare the statement
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			Address addr = appt.getAddress();
+			pstmt.setInt(1, newId);
+			pstmt.setString(2, appt.getTitle());
+			pstmt.setInt(3, addr.getNumber());
+			pstmt.setString(4, addr.getStreet());
+			pstmt.setString(5, addr.getCity());
+			pstmt.setString(6, addr.getState());
+			pstmt.setString(7, addr.getZIP());
+			pstmt.setDate(8, Date.valueOf(appt.getDate()));
+			pstmt.setTime(9, Time.valueOf(appt.getTime()));
+			pstmt.setInt(10, appt.getDuration());
+			pstmt.setString(11, appt.getNotes());
+			pstmt.setInt(12, userId);
+			pstmt.setInt(13, newId);
+			//execute the statement
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
 		}
+	}
 
+	public void displayEvents() {
+		try {
+			String SQL = "SELECT *"
+					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId"
+					+ "WHERE phe.personId = ?";
+			//prepare the statement
+			PreparedStatement pstmt;
+			pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			
+			//display the results, and display a message if there are no results
+			if(!rs.next()) {
+				System.out.println("You have no events scheduled.");
+			} else {
+				Appointment appt;
+				Address addr;
+				do {
+					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
+					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+					System.out.println("Event #" + rs.getInt(1));
+					System.out.println(appt);
+					
+				}while(rs.next());
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public boolean displayEvent(int id) {
+		try {
+			String SQL = "SELECT *"
+					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId"
+					+ "WHERE phe.personId = ? AND e.eventId = ?";
+			//prepare the statement
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, userId);
+			pstmt.setInt(2, id);
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
+				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+				System.out.println(appt);
+				return true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void deleteEvent(int id) {
+		try {
+			String SQL = "DELETE FROM event WHERE EventId = ?;"
+					+ "DELETE FROM personhasevent WHERE EventId = ?";
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, id);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 }

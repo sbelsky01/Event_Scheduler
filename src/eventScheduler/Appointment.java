@@ -62,17 +62,21 @@ public class Appointment extends Event {
 		return address;
 	}
 	
-	public boolean during(Appointment appt)
+	public int getDuration() {
+		return durationInMin;
+	}
+	
+	public boolean during(LocalDate otherDate, LocalTime otherTime, int otherDuration)
 	{
-		if(!getDate().equals(appt.getDate()))
+		if(!getDate().equals(otherDate))
 		{
 			return false;
 		}
 		
 		LocalTime thisStart = time;
-		LocalTime thatStart = appt.time;
+		LocalTime thatStart = otherTime;
 		LocalTime thisEnd = time.plusMinutes(durationInMin);
-		LocalTime thatEnd = appt.time.plusMinutes(appt.durationInMin);
+		LocalTime thatEnd = otherTime.plusMinutes(otherDuration);
 		
 		if(thatStart.compareTo(thisEnd) >= 0)
 		{
