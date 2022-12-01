@@ -156,15 +156,15 @@ public class Main {
 			if (keyboard.nextLine().toLowerCase().equals("yes")) {
 
 				calendar.addEvent(app);
-				System.out.println("\nEvent added\n\n");
+				System.out.println("\nEvent added\n");
 			}
 			else {
-				System.out.println("Action cancelled\n\n");
+				System.out.println("Action cancelled\n");
 			}
 
 		} else {
 			calendar.addEvent(app);
-			System.out.println("\nEvent added\n\n");
+			System.out.println("\nEvent added\n");
 		}
 	}
 
@@ -172,13 +172,15 @@ public class Main {
 		displayEvents(calendar);
 		System.out.println("Which event would you like to remove?");
 		int id = keyboard.nextInt();
+		keyboard.nextLine();
 
 		if(calendar.displayEvent(id)) {
 			System.out.println("Are you sure want to delete this event? ");
 			if(keyboard.nextLine().toLowerCase().equals("yes")) {
 				calendar.deleteEvent(id);
+				System.out.println("Event deleted.")
 			} else {
-				System.out.println("Action Cancelled");
+				System.out.println("Action cancelled");
 			}
 		} else {
 			System.out.println("Invalid event id.");

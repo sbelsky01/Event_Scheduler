@@ -14,11 +14,12 @@ public class Calendar {
 
 	public int overlapping(Appointment appt) {
 		try {
-			String SQL = "SELECT eventid, date, time, duration "
+			String SQL = "SELECT e.eventid, date, time, duration "
 					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
-					+ "WHERE phe.personid = ? AND date = " + appt.getDate();
+					+ "WHERE phe.personid = ? AND date = ?";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, userId);
+			pstmt.setDate(2, Date.valueOf(appt.getDate()));
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()) {
 				if(appt.during(rs.getDate(2).toLocalDate(), rs.getTime(3).toLocalTime(), rs.getInt(4))) {
@@ -71,8 +72,8 @@ public class Calendar {
 
 	public void displayEvents() {
 		try {
-			String SQL = "SELECT *"
-					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId"
+			String SQL = "SELECT * "
+					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
 					+ "WHERE phe.personId = ?";
 			//prepare the statement
 			PreparedStatement pstmt;
@@ -89,8 +90,10 @@ public class Calendar {
 				do {
 					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
 					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+					System.out.println();
 					System.out.println("Event #" + rs.getInt(1));
 					System.out.println(appt);
+					System.out.println();
 					
 				}while(rs.next());
 			}
@@ -103,8 +106,8 @@ public class Calendar {
 
 	public boolean displayEvent(int id) {
 		try {
-			String SQL = "SELECT *"
-					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId"
+			String SQL = "SELECT * "
+					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
 					+ "WHERE phe.personId = ? AND e.eventId = ?";
 			//prepare the statement
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
@@ -126,8 +129,8 @@ public class Calendar {
 
 	public void deleteEvent(int id) {
 		try {
-			String SQL = "DELETE FROM event WHERE EventId = ?;"
-					+ "DELETE FROM personhasevent WHERE EventId = ?";
+			String SQL = "DELETE FROM personhasevent WHERE EventId = ?;"
+						+ "DELETE FROM event WHERE EventId = ?;";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, id);
 			pstmt.setInt(2, id);
