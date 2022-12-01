@@ -91,7 +91,7 @@ public class Calendar {
 					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
 					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
 					System.out.println();
-					System.out.println("Event #" + rs.getInt(1));
+					System.out.println("#" + rs.getInt(1));
 					System.out.println(appt);
 					System.out.println();
 					

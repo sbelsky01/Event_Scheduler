@@ -4,6 +4,7 @@ import java.time.*;
 import java.sql.*;
 import java.time.format.*;
 import java.util.InputMismatchException;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -77,6 +78,7 @@ public class Main {
 						System.out.println("Please enter a valid choice: ");
 					}
 				} catch (InputMismatchException e) {
+					keyboard.nextLine();
 					tryAgain = true;
 					System.out.println("Input mismatch! Enter a new number: ");
 				}
@@ -130,6 +132,7 @@ public class Main {
 		try {
 			choice = keyboard.nextInt();
 		} catch (InputMismatchException e) {
+			keyboard.nextLine();
 			System.out.println("Input mismatch! Enter a new number: ");
 		}
 		return choice;
@@ -153,8 +156,29 @@ public class Main {
 
 		Address addr = new Address(num, streetName, city, state, zip);
 
-		System.out.println("\nPlease enter your appointment details: ");
-		System.out.print("Event date (yyyy-mm-dd): ");
+		System.out.println("\nPlease enter your event details: ");
+		
+		LocalDate date = getDate(keyboard);
+
+		System.out.print("Event name: ");
+		
+		String eventName = keyboard.nextLine();
+		
+		LocalTime time = getTime(keyboard);
+		
+		int min = getDuration(keyboard);
+
+		System.out.println("Add any additional notes about your event: ");
+		String notes = keyboard.nextLine();
+
+		Appointment app = new Appointment(date, eventName, time, notes, min, addr);
+		System.out.println("\nYou entered:\n" + app + "\n");
+		
+		addEvent(app, calendar, keyboard);
+	}
+	
+	public static LocalDate getDate(Scanner keyboard) {
+		System.out.print("Event date (ex: January 21, 2005): ");
 
 		boolean tryAgain;
 		String dateString = null;
@@ -164,43 +188,70 @@ public class Main {
 			tryAgain = false;
 			dateString = keyboard.nextLine();
 			try {
-				date = LocalDate.parse(dateString);
+				date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.ENGLISH));
 			} catch (DateTimeParseException e) {
 				tryAgain = true;
 				System.out.print("Please use the proper format: ");
 			}
 		} while (tryAgain);
+		
+		return date;
+	}
+	
+	public static LocalTime getTime(Scanner keyboard) {
+		System.out.print("Event time (ex: 4:45 pm) : ");
 
-		System.out.print("Event name: ");
-		String eventName = keyboard.nextLine();
-
-		System.out.print("Event time(hh:mm): ");
-
-		String stringTime = null;
+		boolean tryAgain;
 		LocalTime time = null;
 
 		do {
 			tryAgain = false;
-			stringTime = keyboard.nextLine();
-			stringTime += ":00";
+			String timeString = keyboard.nextLine();
+			timeString = timeString.toUpperCase();
+			if(timeString.charAt(1) == ':') {
+				timeString = "0" + timeString;
+			}
+			if(timeString.length() < 8) {
+				timeString += "M";
+			}
 			try {
-				time = LocalTime.parse(stringTime);
+				time = LocalTime.parse(timeString, DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH));
 			} catch (DateTimeParseException e) {
 				tryAgain = true;
 				System.out.print("Please use the proper format: ");
 			}
 		} while (tryAgain);
-
-		System.out.print("How long will the appointment be(in minutes)? ");
-		int min = keyboard.nextInt();
-		keyboard.nextLine();
-		System.out.println("Add any additional notes about your appointment: ");
-		String notes = keyboard.nextLine();
-
-		Appointment app = new Appointment(date, eventName, time, notes, min, addr);
-		System.out.println("\nYou entered:\n" + app + "\n");
 		
-		addEvent(app, calendar, keyboard);
+		return time;
+	}
+	
+	public static int getDuration(Scanner keyboard) {
+		boolean tryAgain;
+		int[] nums = null;
+		int l = 0;
+		System.out.print("How long will the event be (h:m or m)? ");
+		do {
+			tryAgain = false;
+			String min = keyboard.nextLine();
+			String[] hm = min.split(":");
+			try {
+				if((l = hm.length) > 2 || l < 1) {
+					throw new IllegalArgumentException();
+				}
+				nums = new int[l];
+				for(int i=0; i<l; i++) {
+					nums[i] = Integer.parseInt(hm[i]);
+				}
+			} catch(IllegalArgumentException e) {
+				tryAgain = true;
+				System.out.println("Please enter a valid value: ");
+			}
+		}while(tryAgain);
+		
+		int min = l==2 ? nums[0]*60+nums[1] : nums[0];
+		
+		return min;
+		
 	}
 	
 	public static void addEvent(Appointment app, Calendar calendar, Scanner keyboard) {
