@@ -139,5 +139,9 @@ public class Calendar {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	public void setId(int id) {
+		this.userId = id;
+	}
 
 }

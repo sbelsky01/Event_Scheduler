@@ -20,14 +20,14 @@ public class Main {
 			props.setProperty("password", "v2_3wFD6_gDuGkwzwqcRNAD289p77pKf");
 			con = DriverManager.getConnection("jdbc:postgresql://db.bit.io/ShiraNeumann.Calendar", props);
 
-			int id = userSignIn();
-
 			Scanner keyboard = new Scanner(System.in);
+			UserManager users = new UserManager(con);
+			int id = userSignIn(keyboard, users);
 			Calendar calendar = new Calendar(con, id);
 
 			int choice = 0;
 
-			while (choice != 5) {
+			while (choice != 6) {
 
 				choice = menu(keyboard);
 
@@ -45,6 +45,11 @@ public class Main {
 				case 4:
 					displayEvents(calendar);
 					break;
+					
+				case 5:
+					id = userSignIn(keyboard, users);
+					calendar.setId(id);
+					break;
 				}
 
 			}
@@ -54,8 +59,59 @@ public class Main {
 		}
 	}
 
-	public static int userSignIn() {
-		return 1;
+	public static int userSignIn(Scanner keyboard, UserManager um) {
+		int choice = 2;
+		int success = 0;
+		while(success == 0) {
+			System.out.println("Options: ");
+			System.out.println("1. Sign in");
+			System.out.println("2. Create new user");
+			boolean tryAgain = true;
+			while(tryAgain) {
+				try {
+					choice = keyboard.nextInt();
+					keyboard.nextLine();
+					tryAgain = false;
+					if(choice != 1 && choice != 2) {
+						tryAgain = true;
+						System.out.println("Please enter a valid choice: ");
+					}
+				} catch (InputMismatchException e) {
+					tryAgain = true;
+					System.out.println("Input mismatch! Enter a new number: ");
+				}
+			}
+
+			success = signIn(choice, keyboard, um);
+		}
+		
+		return success;
+	}
+	
+	public static int signIn(int choice, Scanner keyboard, UserManager um) {
+		System.out.print("Enter your first name: ");
+		String f = keyboard.nextLine();
+		System.out.print("Enter your last name: ");
+		String l = keyboard.nextLine();
+		int id=0;
+		
+		switch(choice) {
+		case 2:
+			if(!um.addUser(f, l)) {
+				System.out.println("User already exists.\n");
+				return 0;
+			}
+			System.out.println("\nUser added successfully.");
+		case 1:
+			if((id = um.signIn(f, l)) == 0) {
+				System.out.println("Invalid Credentials!\n");
+				return 0;
+			}
+			System.out.println("Welcome, " + f + "\n");
+		}
+		
+		return id;
+		
 	}
 
 	public static int menu(Scanner keyboard) {
@@ -66,7 +122,8 @@ public class Main {
 		System.out.println("2. Remove event");
 		System.out.println("3. Modify event");
 		System.out.println("4. Display events");
-		System.out.println("5. Exit");
+		System.out.println("5. Switch user");
+		System.out.println("6. Exit");
 
 		System.out.print("What would you like to do? ");
 
@@ -178,7 +235,7 @@ public class Main {
 			System.out.println("Are you sure want to delete this event? ");
 			if(keyboard.nextLine().toLowerCase().equals("yes")) {
 				calendar.deleteEvent(id);
-				System.out.println("Event deleted.")
+				System.out.println("Event deleted.");
 			} else {
 				System.out.println("Action cancelled");
 			}

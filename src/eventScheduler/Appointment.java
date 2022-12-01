@@ -99,7 +99,9 @@ public class Appointment extends Event {
 		sbr.append("\nTime: " + getFormattedTime());
 		sbr.append("\n" + getTitle());
 		sbr.append("\n" + address);
-		sbr.append("\n" + getNotes());
+		if(!getNotes().equals("")) {
+			sbr.append("\n" + getNotes());
+		}
 		
 		return sbr.toString();
 	}
