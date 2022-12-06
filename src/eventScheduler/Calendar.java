@@ -103,6 +103,36 @@ public class Calendar {
 			e.printStackTrace();
 		}
 	}
+	
+	public void displayShortEvents() {
+		try {
+			String SQL = "SELECT e.EventId, EventName "
+					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
+					+ "WHERE phe.personId = ?";
+			//prepare the statement
+			PreparedStatement pstmt;
+			pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			
+			//display the results, and display a message if there are no results
+			if(!rs.next()) {
+				System.out.println("You have no events scheduled.");
+			} else {
+				do {
+					System.out.println();
+					System.out.print("#" + rs.getInt(1) + " ");
+					System.out.println(rs.getString(2));
+					
+				}while(rs.next());
+			}
+			System.out.println();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public boolean displayEvent(int id) {
 		try {
@@ -117,7 +147,7 @@ public class Calendar {
 			if(rs.next()) {
 				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
 				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
-				System.out.println(appt);
+				System.out.println("\n" + appt + "\n");
 				return true;
 			}
 		} catch (SQLException e) {

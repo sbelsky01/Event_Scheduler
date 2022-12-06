@@ -28,7 +28,7 @@ public class Main {
 
 			int choice = 0;
 
-			while (choice != 6) {
+			while (choice != 7) {
 
 				choice = menu(keyboard);
 
@@ -44,10 +44,15 @@ public class Main {
 					break;
 
 				case 4:
-					displayEvents(calendar);
+					displayEventTitles(calendar);
+					displayEventDetails(calendar, keyboard);
 					break;
 					
 				case 5:
+					displayAllEvents(calendar);
+					break;
+					
+				case 6:
 					id = userSignIn(keyboard, users);
 					calendar.setId(id);
 					break;
@@ -95,17 +100,19 @@ public class Main {
 		String f = keyboard.nextLine();
 		System.out.print("Enter your last name: ");
 		String l = keyboard.nextLine();
+		System.out.print("Enter your password: ");
+		String p = keyboard.nextLine();
 		int id=0;
 		
 		switch(choice) {
 		case 2:
-			if(!um.addUser(f, l)) {
+			if(!um.addUser(f, l, p)) {
 				System.out.println("User already exists.\n");
 				return 0;
 			}
 			System.out.println("\nUser added successfully.");
 		case 1:
-			if((id = um.signIn(f, l)) == 0) {
+			if((id = um.signIn(f, l, p)) == 0) {
 				System.out.println("Invalid Credentials!\n");
 				return 0;
 			}
@@ -123,9 +130,10 @@ public class Main {
 		System.out.println("1. Add event");
 		System.out.println("2. Remove event");
 		System.out.println("3. Modify event");
-		System.out.println("4. Display events");
-		System.out.println("5. Switch user");
-		System.out.println("6. Exit");
+		System.out.println("4. View an event");
+		System.out.println("5. Display all events");
+		System.out.println("6. Switch user");
+		System.out.println("7. Exit");
 
 		System.out.print("What would you like to do? ");
 
@@ -277,7 +285,7 @@ public class Main {
 	}
 
 	public static void removeEvent(Scanner keyboard, Calendar calendar) {
-		displayEvents(calendar);
+		displayEventTitles(calendar);
 		System.out.println("Which event would you like to remove?");
 		int id = keyboard.nextInt();
 		keyboard.nextLine();
@@ -303,9 +311,20 @@ public class Main {
 		//
 
 	}
-
-	public static void displayEvents(Calendar calendar) {
+	
+	public static void displayAllEvents(Calendar calendar) {
 		calendar.displayEvents();
+	}
+
+	public static void displayEventTitles(Calendar calendar) {
+		calendar.displayShortEvents();
+	}
+	
+	public static void displayEventDetails(Calendar calendar, Scanner keyboard) {
+		System.out.print("Enter the id of an event to view more details: ");
+		int id = keyboard.nextInt();
+		keyboard.nextLine();
+		calendar.displayEvent(id);
 	}
 
 }

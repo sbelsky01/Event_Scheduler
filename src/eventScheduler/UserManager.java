@@ -13,7 +13,7 @@ public class UserManager {
 		this.conn = conn;
 	}
 	
-	public boolean addUser(String f, String l) {
+	public boolean addUser(String f, String l, String pwd) {
 		try {
 			//set newId to 1 number higher than the maximum id already in the database
 			int newId;
@@ -23,16 +23,17 @@ public class UserManager {
 			
 
 			//check if the user already exists in the database
-			if(getUserId(f, l) > 0) {
+			if(getUserId(f, l, pwd) > 0) {
 				return false;
 			}
 			
 			//once we know the user doesn't already exist, add the information to the database
-			String SQL = "INSERT INTO PersonTable (PersonId, FirstName, LastName) VALUES (?,?,?)";
+			String SQL = "INSERT INTO PersonTable (PersonId, FirstName, LastName, Password) VALUES (?,?,?,?)";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, newId);
 			pstmt.setString(2, f);
 			pstmt.setString(3, l);
+			pstmt.setString(4, pwd);
 			pstmt.executeUpdate();
 			return true;
 			
@@ -44,17 +45,18 @@ public class UserManager {
 	}
 	
 	//returns the id of the user, returns 0 if the user doesn't exist
-	public int signIn(String f, String l) {
-		return getUserId(f, l);
+	public int signIn(String f, String l, String pwd) {
+		return getUserId(f, l, pwd);
 	}
 	
 	//returns the id of the user with the specified first and last name
-	private int getUserId(String f, String l) {
+	private int getUserId(String f, String l, String pwd) {
 		try {
-			String SQL = "SELECT PersonId FROM PersonTable WHERE FirstName = ? AND LastName = ?";
+			String SQL = "SELECT PersonId FROM PersonTable WHERE FirstName = ? AND LastName = ? AND Password = ?";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setString(1, f);
 			pstmt.setString(2, l);
+			pstmt.setString(3, pwd);
 			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()) {
 				return rs.getInt(1);

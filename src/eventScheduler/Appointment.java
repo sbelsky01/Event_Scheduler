@@ -78,12 +78,12 @@ public class Appointment extends Event {
 		LocalTime thisEnd = time.plusMinutes(durationInMin);
 		LocalTime thatEnd = otherTime.plusMinutes(otherDuration);
 		
-		if(thatStart.compareTo(thisEnd) >= 0)
+		if(thatStart.compareTo(thisEnd) > 0)
 		{
 			return false;
 		}
 		
-		if(thatEnd.compareTo(thisStart) <= 0)
+		if(thatEnd.compareTo(thisStart) < 0)
 		{
 			return false;
 		}
