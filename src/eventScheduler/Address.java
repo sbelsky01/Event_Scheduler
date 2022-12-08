@@ -61,7 +61,7 @@ public class Address {
 	public String toString() {
 		StringBuilder sbr = new StringBuilder();
 		sbr.append(number + " "+ street);
-		sbr.append(" " + city + " " + state + ", " + ZIP);
+		sbr.append(" " + city + ", " + state + " " + ZIP);
 		return sbr.toString();
 	}
 	
