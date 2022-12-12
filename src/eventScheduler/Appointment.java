@@ -7,22 +7,24 @@ public class Appointment extends Event {
 	private int durationInMin;
 	private Address address;
 	
-	public Appointment(LocalDate date,String title, LocalTime time, Address address) {
-		this(date, title, time,"", 0, address );
+private int category;
+	
+	public Appointment(LocalDate date,String title, LocalTime time, Address address, int category) {
+		this(date, title, time,"", 0, address, category );
 	
 	}
 	
-	public Appointment(LocalDate date,String title, LocalTime time, int duration, Address address) {
-		this(date, title, time,"", duration, address );
+	public Appointment(LocalDate date,String title, LocalTime time, int duration, Address address, int category) {
+		this(date, title, time,"", duration, address , category);
 	
 	}
 	
-	public Appointment(LocalDate date,String title, LocalTime time, String notes, Address address) {
-		this(date, title, time,"", 0, address );
+	public Appointment(LocalDate date,String title, LocalTime time, String notes, Address address, int category) {
+		this(date, title, time,"", 0, address, category );
 	
 	}
 	
-	public Appointment(LocalDate date,String title, LocalTime time, String notes, int duration, Address address ) {
+	public Appointment(LocalDate date,String title, LocalTime time, String notes, int duration, Address address, int category ) {
 		super(date, title,notes);
 		this.time = time;
 		this.address = address;
@@ -32,12 +34,21 @@ public class Appointment extends Event {
 			throw new IllegalArgumentException();
 		}
 		this.durationInMin = duration;
+		this.category = category;
 	}
 	
 	public Appointment copy() {
-		return new Appointment(date, title, time, notes, durationInMin, address);
+		return new Appointment(date, title, time, notes, durationInMin, address, category);
 	}
 	
+	public int getCategory() {
+		return category;
+	}
+
+	public void setCategory(int category) {
+		this.category = category;
+	}
+
 	public void setTime(LocalTime time) {
 		this.time = time;
 	}
