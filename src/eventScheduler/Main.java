@@ -49,7 +49,7 @@ public class Main {
 					break;
 
 				case 5:
-					displayAllEvents(calendar);
+//					displayAllEvents(calendar);
 					break;
 
 				case 6:
@@ -393,9 +393,9 @@ public class Main {
 
 	}
 
-	public static void displayAllEvents(Calendar calendar) {
-		calendar.displayEvents();
-	}
+//	public static void displayAllEvents(Calendar calendar) {
+//		calendar.displayEvents();
+//	}
 
 	public static void displayEventTitles(Calendar calendar) {
 		calendar.displayShortEvents();

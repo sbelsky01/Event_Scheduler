@@ -70,15 +70,17 @@ public class Calendar {
 		}
 	}
 
-	public void displayEvents() {
+	public void displayEvents(String colName) {
 		try {
 			String SQL = "SELECT * "
 					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
-					+ "WHERE phe.personId = ?";
+					+ "WHERE phe.personId = ?"
+					+ "ORDER BY ?";
 			//prepare the statement
 			PreparedStatement pstmt;
 			pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, userId);
+			pstmt.setString(2, colName);
 			ResultSet rs = pstmt.executeQuery();
 			
 			//display the results, and display a message if there are no results
