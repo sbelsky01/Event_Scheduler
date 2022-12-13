@@ -44,8 +44,8 @@ public class Calendar {
 
 			//write the insert statement
 			String SQL = "INSERT INTO event (EventId, EventName, StreetNum, StreetName, "
-					+ "City, State, Zip, Date, Time, Duration, Notes) "
-					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+					+ "City, State, Zip, Date, Time, Duration, Notes, CategoryId) "
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
 					+ "INSERT INTO personhasevent (PersonId, EventId) VALUES (?, ?)";
 			//prepare the statement
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
@@ -61,8 +61,9 @@ public class Calendar {
 			pstmt.setTime(9, Time.valueOf(appt.getTime()));
 			pstmt.setInt(10, appt.getDuration());
 			pstmt.setString(11, appt.getNotes());
-			pstmt.setInt(12, userId);
-			pstmt.setInt(13, newId);
+			pstmt.setString(12, appt.getCategory());
+			pstmt.setInt(13, userId);
+			pstmt.setInt(14, newId);
 			//execute the statement
 			pstmt.executeUpdate();
 		} catch (SQLException e) {
@@ -74,6 +75,7 @@ public class Calendar {
 		try {
 			String SQL = "SELECT * "
 					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
+					+ "JOIN categorytype c ON e.categoryid = c.categoryid "
 					+ "WHERE phe.personId = ?"
 					+ "ORDER BY ?";
 			//prepare the statement
@@ -91,7 +93,7 @@ public class Calendar {
 				Address addr;
 				do {
 					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
-					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(13));
 					System.out.println();
 					System.out.println("#" + rs.getInt(1));
 					System.out.println(appt);
@@ -140,6 +142,7 @@ public class Calendar {
 		try {
 			String SQL = "SELECT * "
 					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
+					+ "JOIN categorytype c ON e.categoryid = c.categoryid "
 					+ "WHERE phe.personId = ? AND e.eventId = ?";
 			//prepare the statement
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
@@ -148,7 +151,7 @@ public class Calendar {
 			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()) {
 				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
-				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(13));
 				System.out.println("\n" + appt + "\n");
 				return true;
 			}

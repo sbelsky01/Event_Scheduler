@@ -106,7 +106,9 @@ public class Main {
 
 		switch(choice) {
 		case 2:
-			boolean userAdded = userManager.addUser(first, last, pwd);
+			System.out.println("Enter your email: ");
+			String email = keyboard.nextLine();
+			boolean userAdded = userManager.addUser(first, last, pwd, email);
 			if(!userAdded) {
 				System.out.println("User already exists.\n");
 				return 0;
