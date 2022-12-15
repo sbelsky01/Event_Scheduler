@@ -178,5 +178,61 @@ public class Calendar {
 	public void setId(int id) {
 		this.userId = id;
 	}
+	
+	public void sendEmail() {
+		Email email = new Email(getUserEmail(), "Event Created", getNewestEvent());
+		
+	}
+
+	public String getUserEmail() {
+		String SQL = "SELECT email " + "FROM persontable p " + "WHERE p.personId = ?";
+		PreparedStatement pstmt;
+		String email = null;
+
+		try {
+			pstmt = conn.prepareStatement(SQL);
+
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				email = rs.getString(1);
+			}
+
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		return email;
+	}
+
+	public String getNewestEvent() {
+		//Sort in descending order and only allow one to get the last event added
+		String SQL = "SELECT * " + "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
+				+ "WHERE phe.personId = ? " +
+				"ORDER BY e.eventid DESC LIMIT 1";
+		// prepare the statement
+		PreparedStatement pstmt;
+		String event = null;
+		try {
+			pstmt = conn.prepareStatement(SQL);
+
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if (rs.next()) {
+				
+
+				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6),
+						rs.getString(7));
+				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2),
+						rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+
+				event = "\n" + appt + "\n";
+			}
+			System.out.println(event);
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		return event;
+	}
 
 }
