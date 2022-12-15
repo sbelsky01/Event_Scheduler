@@ -344,6 +344,8 @@ public class Main {
 
 				calendar.addEvent(app);
 				System.out.println("\nEvent added\n");
+				calendar.sendEmail();
+				System.out.println("An email with details of this event was sent to your inbox.)");
 			}
 			else {
 				System.out.println("Action cancelled\n");
@@ -352,6 +354,8 @@ public class Main {
 		} else {
 			calendar.addEvent(app);
 			System.out.println("\nEvent added\n");
+			calendar.sendEmail();
+			System.out.println("An email with details of this event was sent to your inbox.)");
 		}
 	}
 
