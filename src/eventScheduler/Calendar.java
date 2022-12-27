@@ -71,7 +71,7 @@ public class Calendar {
 		}
 	}
 
-	public void displayEvents(String colName) {
+	public void displayEvents(int colName) {
 		try {
 			String SQL = "SELECT * "
 					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
