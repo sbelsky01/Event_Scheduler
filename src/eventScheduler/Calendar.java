@@ -71,7 +71,7 @@ public class Calendar {
 		}
 	}
 
-	public void displayEvents(String colName) {
+	public void displayEvents(int colName) {
 		try {
 			String SQL = "SELECT * "
 					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
@@ -82,7 +82,7 @@ public class Calendar {
 			PreparedStatement pstmt;
 			pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, userId);
-			pstmt.setString(2, colName);
+			pstmt.setString(2, String.valueOf(colName));
 			ResultSet rs = pstmt.executeQuery();
 			
 			//display the results, and display a message if there are no results
@@ -138,6 +138,7 @@ public class Calendar {
 		}
 	}
 
+	//new parameter name
 	public boolean displayEvent(int id) {
 		try {
 			String SQL = "SELECT * "

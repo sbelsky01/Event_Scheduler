@@ -49,7 +49,7 @@ public class Main {
 					break;
 
 				case 5:
-//					displayAllEvents(calendar);
+					displayAllEvents(calendar, keyboard);
 					break;
 
 				case 6:
@@ -235,6 +235,7 @@ public class Main {
 
 		Address addr = new Address(num, streetName, city, state, zip);
 
+
 		System.out.println("\nPlease enter your event details: ");
 
 		LocalDate date = getDate(keyboard);
@@ -250,7 +251,7 @@ public class Main {
 		System.out.println("Add any additional notes about your event: ");
 		String notes = keyboard.nextLine();
 
-		Appointment app = new Appointment(date, eventName, time, notes, min, addr);
+		Appointment app = new Appointment(date, eventName, time, notes, min, addr, notes);
 		System.out.println("\nYou entered:\n" + app + "\n");
 
 		addEvent(app, calendar, keyboard);
@@ -399,9 +400,18 @@ public class Main {
 
 	}
 
-//	public static void displayAllEvents(Calendar calendar) {
-//		calendar.displayEvents();
-//	}
+	public static void displayAllEvents(Calendar calendar, Scanner keyboard) {
+
+		System.out.println("How would you like to display your events? ");
+
+		System.out.println("1. By Date");
+		System.out.println("2. By Category");
+		System.out.println("3. Event Name");
+
+		int response = keyboard.nextInt();
+
+		calendar.displayEvents(response);
+	}
 
 	public static void displayEventTitles(Calendar calendar) {
 		calendar.displayShortEvents();
