@@ -159,6 +159,11 @@ public class Main {
 		String city = null;
 		String state = null;
 		String zip = null;
+		
+		int category = 0;
+
+		System.out.println("\nPlease enter the category: ");
+		category = getCategory(keyboard);
 
 		// getting userInput to create new event = diff fields
 		System.out.println("\nPlease enter the address: ");
@@ -331,6 +336,28 @@ public class Main {
 
 		return min;
 
+	}
+	
+		public static int getCategory(Scanner keyboard) {
+		int category = 0;
+		boolean tryAgain = true;
+		
+		System.out.print("Category: ");
+		System.out.println("category options");
+
+		while(tryAgain) {
+			try {
+				category = keyboard.nextInt();
+				tryAgain = false;
+			}
+			catch (InputMismatchException e) {
+				System.out.print("Please enter the category: ");
+				category = keyboard.nextInt();
+				tryAgain = false;			}
+		}
+		return category;
+		
+		
 	}
 
 	public static void addEvent(Appointment app, Calendar calendar, Scanner keyboard) {
