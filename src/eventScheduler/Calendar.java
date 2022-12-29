@@ -2,11 +2,6 @@ package eventScheduler;
 
 import java.sql.*;
 
-public class Calendar {
-
-	private Connection conn;
-	private int userId;
-
 	public Calendar(Connection conn, int id) {
 		this.conn = conn;
 		this.userId = id;
@@ -21,13 +16,13 @@ public class Calendar {
 			pstmt.setInt(1, userId);
 			pstmt.setDate(2, Date.valueOf(appt.getDate()));
 			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
-				if(appt.during(rs.getDate(2).toLocalDate(), rs.getTime(3).toLocalTime(), rs.getInt(4))) {
+			while (rs.next()) {
+				if (appt.during(rs.getDate(2).toLocalDate(), rs.getTime(3).toLocalTime(), rs.getInt(4))) {
 					return rs.getInt(1);
 				}
 			}
 
-		} catch(SQLException e) {
+		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
 
@@ -40,14 +35,14 @@ public class Calendar {
 			int newId;
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT max(e.eventid) FROM event e");
-			newId = rs.next() ? rs.getInt(1)+1 : 1;
+			newId = rs.next() ? rs.getInt(1) + 1 : 1;
 
-			//write the insert statement
+			// write the insert statement
 			String SQL = "INSERT INTO event (EventId, EventName, StreetNum, StreetName, "
 					+ "City, State, Zip, Date, Time, Duration, Notes, CategoryId) "
 					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
 					+ "INSERT INTO personhasevent (PersonId, EventId) VALUES (?, ?)";
-			//prepare the statement
+			// prepare the statement
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			Address addr = appt.getAddress();
 			pstmt.setInt(1, newId);
@@ -64,95 +59,93 @@ public class Calendar {
 			pstmt.setString(12, appt.getCategory());
 			pstmt.setInt(13, userId);
 			pstmt.setInt(14, newId);
-			//execute the statement
+			// execute the statement
 			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
 	}
 
-	public void displayEvents(int colName) {
+	public void displayEvents(String colName) {
 		try {
-			String SQL = "SELECT * "
-					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
-					+ "JOIN categorytype c ON e.categoryid = c.categoryid "
-					+ "WHERE phe.personId = ?"
-					+ "ORDER BY ?";
-			//prepare the statement
+			String SQL = "SELECT * " + "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
+					+ "JOIN categorytypes c ON e.categoryid = c.categoryid " + "WHERE phe.personId = ?" + "ORDER BY ?";
+			// prepare the statement
 			PreparedStatement pstmt;
 			pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, userId);
-			pstmt.setString(2, String.valueOf(colName));
+			pstmt.setString(2, colName);
 			ResultSet rs = pstmt.executeQuery();
-			
-			//display the results, and display a message if there are no results
-			if(!rs.next()) {
+
+			// display the results, and display a message if there are no results
+			if (!rs.next()) {
 				System.out.println("You have no events scheduled.");
 			} else {
 				Appointment appt;
 				Address addr;
 				do {
-					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
-					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(13));
+					addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6),
+							rs.getString(7));
+					appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(),
+							rs.getString(11), rs.getInt(10), addr, rs.getString(13));
 					System.out.println();
 					System.out.println("#" + rs.getInt(1));
 					System.out.println(appt);
 					System.out.println();
-					
-				}while(rs.next());
+
+				} while (rs.next());
 			}
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public void displayShortEvents() {
-		try {
-			String SQL = "SELECT e.EventId, EventName "
-					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid "
-					+ "WHERE phe.personId = ?";
-			//prepare the statement
-			PreparedStatement pstmt;
-			pstmt = conn.prepareStatement(SQL);
-			pstmt.setInt(1, userId);
-			ResultSet rs = pstmt.executeQuery();
-			
-			//display the results, and display a message if there are no results
-			if(!rs.next()) {
-				System.out.println("You have no events scheduled.");
-			} else {
-				do {
-					System.out.println();
-					System.out.print("#" + rs.getInt(1) + " ");
-					System.out.println(rs.getString(2));
-					
-				}while(rs.next());
-			}
-			System.out.println();
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	//new parameter name
+	public void displayShortEvents() {
+		try {
+			String SQL = "SELECT e.EventId, EventName "
+					+ "FROM event e JOIN personhasevent phe ON e.eventid = phe.eventid " + "WHERE phe.personId = ?";
+			// prepare the statement
+			PreparedStatement pstmt;
+			pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+
+			// display the results, and display a message if there are no results
+			if (!rs.next()) {
+				System.out.println("You have no events scheduled.");
+			} else {
+				do {
+					System.out.println();
+					System.out.print("#" + rs.getInt(1) + " ");
+					System.out.println(rs.getString(2));
+
+				} while (rs.next());
+			}
+			System.out.println();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public boolean displayEvent(int id) {
 		try {
-			String SQL = "SELECT * "
-					+ "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
+			String SQL = "SELECT * " + "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
 					+ "JOIN categorytype c ON e.categoryid = c.categoryid "
 					+ "WHERE phe.personId = ? AND e.eventId = ?";
-			//prepare the statement
+			// prepare the statement
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, userId);
 			pstmt.setInt(2, id);
 			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7));
-				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2), rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(13));
+			if (rs.next()) {
+				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6),
+						rs.getString(7));
+				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2),
+						rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(13));
 				System.out.println("\n" + appt + "\n");
 				return true;
 			}
@@ -165,8 +158,7 @@ public class Calendar {
 
 	public void deleteEvent(int id) {
 		try {
-			String SQL = "DELETE FROM personhasevent WHERE EventId = ?;"
-						+ "DELETE FROM event WHERE EventId = ?;";
+			String SQL = "DELETE FROM personhasevent WHERE EventId = ?;" + "DELETE FROM event WHERE EventId = ?;";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, id);
 			pstmt.setInt(2, id);
@@ -175,14 +167,14 @@ public class Calendar {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	public void setId(int id) {
 		this.userId = id;
 	}
-	
+
 	public void sendEmail() {
 		Email email = new Email(getUserEmail(), "Event Created", getNewestEvent());
-		
+
 	}
 
 	public String getUserEmail() {
@@ -206,10 +198,9 @@ public class Calendar {
 	}
 
 	public String getNewestEvent() {
-		//Sort in descending order and only allow one to get the last event added
+		// Sort in descending order and only allow one to get the last event added
 		String SQL = "SELECT * " + "FROM event e JOIN personhasevent phe ON e.eventId = phe.eventId "
-				+ "WHERE phe.personId = ? " +
-				"ORDER BY e.eventid DESC LIMIT 1";
+				+ "WHERE phe.personId = ? " + "ORDER BY e.eventid DESC LIMIT 1";
 		// prepare the statement
 		PreparedStatement pstmt;
 		String event = null;
@@ -218,14 +209,13 @@ public class Calendar {
 
 			pstmt.setInt(1, userId);
 			ResultSet rs = pstmt.executeQuery();
-			
+
 			if (rs.next()) {
-				
 
 				Address addr = new Address(rs.getInt(3), rs.getString(4), rs.getString(5), rs.getString(6),
 						rs.getString(7));
 				Appointment appt = new Appointment(rs.getDate(9).toLocalDate(), rs.getString(2),
-						rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr);
+						rs.getTime(8).toLocalTime(), rs.getString(11), rs.getInt(10), addr, rs.getString(12));
 
 				event = "\n" + appt + "\n";
 			}
