@@ -8,26 +8,26 @@ import java.sql.Statement;
 
 public class UserManager {
 	private Connection conn;
-	
+
 	public UserManager(Connection conn) {
 		this.conn = conn;
 	}
-	
+
 	public boolean addUser(String f, String l, String pwd, String email) {
 		try {
-			//set newId to 1 number higher than the maximum id already in the database
+			// set newId to 1 number higher than the maximum id already in the database
 			int newId;
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT max(PersonId) FROM PersonTable;");
-			newId = rs.next() ? rs.getInt(1)+1 : 1;
-			
+			newId = rs.next() ? rs.getInt(1) + 1 : 1;
 
-			//check if the user already exists in the database
-			if(getUserId(f, l, pwd) > 0) {
+			// check if the user already exists in the database
+			if (getUserId(f, l, pwd) > 0) {
 				return false;
 			}
-			
-			//once we know the user doesn't already exist, add the information to the database
+
+			// once we know the user doesn't already exist, add the information to the
+			// database
 			String SQL = "INSERT INTO PersonTable (PersonId, FirstName, LastName, Password, Email) VALUES (?,?,?,?,?)";
 			PreparedStatement pstmt = conn.prepareStatement(SQL);
 			pstmt.setInt(1, newId);
@@ -37,20 +37,20 @@ public class UserManager {
 			pstmt.setString(5, email);
 			pstmt.executeUpdate();
 			return true;
-			
+
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 			return false;
 		}
-		
+
 	}
-	
-	//returns the id of the user, returns 0 if the user doesn't exist
+
+	// returns the id of the user, returns 0 if the user doesn't exist
 	public int signIn(String f, String l, String pwd) {
 		return getUserId(f, l, pwd);
 	}
-	
-	//returns the id of the user with the specified first and last name
+
+	// returns the id of the user with the specified first and last name
 	private int getUserId(String f, String l, String pwd) {
 		try {
 			String SQL = "SELECT PersonId FROM PersonTable WHERE FirstName = ? AND LastName = ? AND Password = ?";
@@ -59,7 +59,7 @@ public class UserManager {
 			pstmt.setString(2, l);
 			pstmt.setString(3, pwd);
 			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
+			if (rs.next()) {
 				return rs.getInt(1);
 			} else {
 				return 0;
