@@ -40,7 +40,7 @@ public class Main {
 					removeEvent(keyboard, calendar);
 					break;
 				case 3:
-					modifyEvent();
+					modifyEvent(keyboard, calendar);
 					break;
 
 				case 4:
@@ -49,7 +49,7 @@ public class Main {
 					break;
 
 				case 5:
-//					displayAllEvents(calendar);
+					displayAllEvents(calendar, keyboard);
 					break;
 
 				case 6:
@@ -68,17 +68,17 @@ public class Main {
 	public static int signInMenu(Scanner keyboard, UserManager um) {
 		int choice = 2;
 		int success = 0;
-		while(success == 0) {
+		while (success == 0) {
 			System.out.println("Options: ");
 			System.out.println("1. Sign in");
 			System.out.println("2. Create new user");
 			boolean tryAgain = true;
-			while(tryAgain) {
+			while (tryAgain) {
 				try {
 					choice = keyboard.nextInt();
 					keyboard.nextLine();
 					tryAgain = false;
-					if(choice != 1 && choice != 2) {
+					if (choice != 1 && choice != 2) {
 						tryAgain = true;
 						System.out.println("Please enter a valid choice: ");
 					}
@@ -102,14 +102,14 @@ public class Main {
 		String last = keyboard.nextLine();
 		System.out.print("Enter your password: ");
 		String pwd = keyboard.nextLine();
-		int id=0;
+		int id = 0;
 
-		switch(choice) {
+		switch (choice) {
 		case 2:
 			System.out.println("Enter your email: ");
 			String email = keyboard.nextLine();
 			boolean userAdded = userManager.addUser(first, last, pwd, email);
-			if(!userAdded) {
+			if (!userAdded) {
 				System.out.println("User already exists.\n");
 				return 0;
 			} else {
@@ -117,7 +117,7 @@ public class Main {
 			}
 		case 1:
 			id = userManager.signIn(first, last, pwd);
-			if(id == 0) {
+			if (id == 0) {
 				System.out.println("Invalid Credentials!\n");
 				return 0;
 			}
@@ -151,31 +151,22 @@ public class Main {
 		return choice;
 	}
 
-	public static void getEventInfo(Scanner keyboard, Calendar calendar) {
-
+	private static Address receiveAddress(Scanner keyboard) {
 		boolean tryAgain = true;
 		int num = 0;
 		String streetName = null;
 		String city = null;
 		String state = null;
 		String zip = null;
-		
-		int category = 0;
-
-		System.out.println("\nPlease enter the category: ");
-		category = getCategory(keyboard);
-
-		// getting userInput to create new event = diff fields
 		System.out.println("\nPlease enter the address: ");
 		System.out.print("Street number: ");
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				num = keyboard.nextInt();
 				keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter a street number: ");
 				keyboard.nextLine();
 			}
@@ -184,27 +175,14 @@ public class Main {
 		System.out.print("Street name: ");
 		streetName = keyboard.nextLine();
 
-		//      while(tryAgain) {
-		//         try {
-		//            streetName = keyboard.nextLine();
-		//            tryAgain = false;
-		//         }
-		//         catch (InputMismatchException e) {
-		//            System.out.print("Please enter a street name: ");
-		//            keyboard.nextLine();
-		//         }
-		//      }
-
-
 		System.out.print("City: ");
 		tryAgain = true;
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				city = keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter a city: ");
 				keyboard.nextLine();
 			}
@@ -213,12 +191,11 @@ public class Main {
 		System.out.print("State: ");
 		tryAgain = true;
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				state = keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter a state: ");
 				keyboard.nextLine();
 			}
@@ -227,18 +204,24 @@ public class Main {
 		System.out.print("Zipcode: ");
 		tryAgain = true;
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				zip = keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter a zipcode: ");
 				keyboard.nextLine();
 			}
 		}
-
 		Address addr = new Address(num, streetName, city, state, zip);
+		return addr;
+
+	}
+
+	public static void getEventInfo(Scanner keyboard, Calendar calendar) {
+		// getting userInput to create new event
+
+		Address addr = receiveAddress(keyboard);
 
 		System.out.println("\nPlease enter your event details: ");
 
@@ -252,13 +235,76 @@ public class Main {
 
 		int min = getDuration(keyboard);
 
-		System.out.println("Add any additional notes about your event: ");
-		String notes = keyboard.nextLine();
+		String notes = receiveNotes(keyboard);
 
-		Appointment app = new Appointment(date, eventName, time, notes, min, addr);
+		int categoryNum = getCategory(keyboard);
+		String category = getCategoryName(categoryNum);
+
+		Appointment app = new Appointment(date, eventName, time, notes, min, addr, category);
 		System.out.println("\nYou entered:\n" + app + "\n");
 
 		addEvent(app, calendar, keyboard);
+	}
+
+	public static int getCategory(Scanner keyboard) {
+		int category = 0;
+		boolean tryAgain = true;
+
+		System.out.println("Category: ");
+		System.out.println("1. Birthday");
+		System.out.println("2. Meeting");
+		System.out.println("3. Homework");
+		System.out.println("4. Test");
+		System.out.println("5. Appointment");
+		System.out.println("6. Anniversary");
+		System.out.println("7. Wedding");
+		System.out.println("8. Other");
+
+		while (tryAgain) {
+			tryAgain = false;
+			try {
+				category = keyboard.nextInt();
+				if (category < 1 || category > 8) {
+					System.out.print("Please enter a valid category: ");
+					category = keyboard.nextInt();
+					tryAgain = true;
+				}
+			} catch (InputMismatchException e) {
+				System.out.print("Please enter a valid category: ");
+				category = keyboard.nextInt();
+				tryAgain = true;
+			}
+		}
+		return category;
+
+	}
+
+	public static String getCategoryName(int number) {
+		switch (number) {
+		case 1:
+			return "Birthday";
+		case 2:
+			return "Meeting";
+		case 3:
+			return "Homework";
+		case 4:
+			return "Test";
+		case 5:
+			return "Appointment";
+		case 6:
+			return "Anniversary";
+		case 7:
+			return "Wedding";
+		default:
+			return "Other";
+		}
+
+	}
+
+	public static String receiveNotes(Scanner keyboard) {
+		System.out.println("Add any additional notes about your event: ");
+		String notes = keyboard.nextLine();
+		return notes;
 	}
 
 	public static LocalDate getDate(Scanner keyboard) {
@@ -292,10 +338,10 @@ public class Main {
 			tryAgain = false;
 			String timeString = keyboard.nextLine();
 			timeString = timeString.toUpperCase();
-			if(timeString.charAt(1) == ':') {
+			if (timeString.charAt(1) == ':') {
 				timeString = "0" + timeString;
 			}
-			if(timeString.length() < 8) {
+			if (timeString.length() < 8) {
 				timeString += "M";
 			}
 			try {
@@ -319,45 +365,23 @@ public class Main {
 			String min = keyboard.nextLine();
 			String[] hm = min.split(":");
 			try {
-				if((l = hm.length) > 2 || l < 1) {
+				if ((l = hm.length) > 2 || l < 1) {
 					throw new IllegalArgumentException();
 				}
 				nums = new int[l];
-				for(int i=0; i<l; i++) {
+				for (int i = 0; i < l; i++) {
 					nums[i] = Integer.parseInt(hm[i]);
 				}
-			} catch(IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 				tryAgain = true;
 				System.out.println("Please enter a valid value: ");
 			}
-		}while(tryAgain);
+		} while (tryAgain);
 
-		int min = l==2 ? nums[0]*60+nums[1] : nums[0];
+		int min = l == 2 ? nums[0] * 60 + nums[1] : nums[0];
 
 		return min;
 
-	}
-	
-		public static int getCategory(Scanner keyboard) {
-		int category = 0;
-		boolean tryAgain = true;
-		
-		System.out.print("Category: ");
-		System.out.println("category options");
-
-		while(tryAgain) {
-			try {
-				category = keyboard.nextInt();
-				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
-				System.out.print("Please enter the category: ");
-				category = keyboard.nextInt();
-				tryAgain = false;			}
-		}
-		return category;
-		
-		
 	}
 
 	public static void addEvent(Appointment app, Calendar calendar, Scanner keyboard) {
@@ -373,8 +397,7 @@ public class Main {
 				System.out.println("\nEvent added\n");
 				calendar.sendEmail();
 				System.out.println("An email with details of this event was sent to your inbox.)");
-			}
-			else {
+			} else {
 				System.out.println("Action cancelled\n");
 			}
 
@@ -392,21 +415,20 @@ public class Main {
 		displayEventTitles(calendar);
 		System.out.println("Which event would you like to remove?");
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				id = keyboard.nextInt();
 				keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter an id: ");
 				keyboard.nextLine();
 			}
 		}
 
-		if(calendar.displayEvent(id)) {
+		if (calendar.displayEvent(id)) {
 			System.out.println("Are you sure want to delete this event? ");
-			if(keyboard.nextLine().toLowerCase().equals("yes")) {
+			if (keyboard.nextLine().toLowerCase().equals("yes")) {
 				calendar.deleteEvent(id);
 				System.out.println("Event deleted.");
 			} else {
@@ -417,28 +439,162 @@ public class Main {
 		}
 	}
 
-	public static void modifyEvent() {
-		// TODO Auto-generated method stub
+	public static void modifyEvent(Scanner keyboard, Calendar calendar) {
+		System.out.println("Which event would you like to modify: ");
+		displayEventTitles(calendar);
+		int eventId = 0;
+		boolean tryAgain = true;
+		while (tryAgain) {
+			try {
+				eventId = keyboard.nextInt();
+				keyboard.nextLine();
+				tryAgain = false;
+			} catch (InputMismatchException e) {
+				System.out.print("Please enter an id: ");
+				keyboard.nextLine();
+			}
+		}
+		if (!calendar.displayEvent(eventId)) {
+			System.out.println("There is no such event.");
+		} else {
+			boolean more = true;
+			while (more) {
+				System.out.println("What would you like to change: ");
+				System.out.println("1. Event Name");
+				System.out.println("2. Date");
+				System.out.println("3. Time");
+				System.out.println("4. Address");
+				System.out.println("5. Duration");
+				System.out.println("6. Notes");
+				System.out.println("7. Category");
 
-		// display arrayList of events with numbers, get index from user and give them
-		// options of what to change
-		//
+				int fieldToEdit;
+				tryAgain = true;
+				while (tryAgain) {
+					try {
+						fieldToEdit = keyboard.nextInt();
+						keyboard.nextLine();
+
+						if (fieldToEdit > 0 && fieldToEdit < 8) {
+							tryAgain = false;
+							switch (fieldToEdit) {
+							case 1:
+								modifyName(keyboard, eventId, calendar);
+								break;
+							case 2:
+								modifyDate(keyboard, eventId, calendar);
+								break;
+							case 3:
+								modifyTime(keyboard, eventId, calendar);
+								break;
+							case 4:
+								modifyAddress(keyboard, eventId, calendar);
+								break;
+							case 5:
+								modifyDuration(keyboard, eventId, calendar);
+								break;
+							case 6:
+								modifyNotes(keyboard, eventId, calendar);
+								break;
+							case 7:
+								modifyCategory(keyboard, eventId, calendar);
+								break;
+
+							}
+						}
+
+					} catch (InputMismatchException e) {
+						System.out.print("Please enter a valid number: ");
+						keyboard.nextLine();
+					}
+				}
+
+			}
+
+		}
 
 	}
 
-public static void displayAllEvents(Calendar calendar, Scanner keyboard) {
+	private static void modifyCategory(Scanner keyboard, int id, Calendar calendar) {
+		System.out.print("\nEnter the new ");
+		calendar.modifyCategory(id, getCategoryName(getCategory(keyboard)));
+
+	}
+
+	private static void modifyNotes(Scanner keyboard, int id, Calendar calendar) {
+		calendar.modifyDuration(id, receiveNotes(keyboard));
+
+	}
+
+	private static void modifyDuration(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new event duration:");
+		calendar.modifyDuration(id, getDuration(keyboard));
+
+	}
+
+	private static void modifyAddress(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new Address:");
+		Address address = receiveAddress(keyboard);
+		calendar.modifyAddress(id, address);
+
+	}
+
+	private static void modifyTime(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new time:");
+		LocalTime time = getTime(keyboard);
+		calendar.modifyTime(id, time);
+
+	}
+
+	private static void modifyDate(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new date: ");
+		LocalDate date = getDate(keyboard);
+		calendar.modifyDate(id, date);
+	}
+
+	private static void modifyName(Scanner keyboard, int id, Calendar cal) {
+		System.out.println("Enter the new event name: ");
+		String name = keyboard.nextLine();
+		cal.modifyName(id, name);
+
+	}
+
+	public static void displayAllEvents(Calendar calendar, Scanner keyboard) {
 
 		System.out.println("How would you like to display your events? ");
 
 		System.out.println("1. By Date");
 		System.out.println("2. By Category");
 		System.out.println("3. Event Name");
+		int response = 0;
+		boolean tryAgain;
+		do {
+			tryAgain = false;
+			try {
+				response = keyboard.nextInt();
+				keyboard.nextLine();
+				if (response != 1 && response != 2 && response != 3) {
+					System.out.println("Invalid choice, try again: ");
+					tryAgain = true;
+				}
+			} catch (InputMismatchException e) {
+				tryAgain = true;
+				System.out.print("Please enter a valid number: ");
+				keyboard.nextLine();
+			}
+		} while (tryAgain);
+		if (response == 1) {
+			// second column is the event name
+			calendar.displayEvents("date, time");
+		} else if (response == 2) {
+			// 9th column is the date
+			calendar.displayEvents("categoryid");
+		} else {
+			// 12th column is the category
+			calendar.displayEvents("eventname");
+		}
 
-		int response = keyboard.nextInt();
-
-		calendar.displayEvents(response);
 	}
-
 
 	public static void displayEventTitles(Calendar calendar) {
 		calendar.displayShortEvents();
@@ -450,19 +606,21 @@ public static void displayAllEvents(Calendar calendar, Scanner keyboard) {
 
 		System.out.print("Enter the id of an event to view more details: ");
 
-		while(tryAgain) {
+		while (tryAgain) {
 			try {
 				id = keyboard.nextInt();
 				keyboard.nextLine();
 				tryAgain = false;
-			}
-			catch (InputMismatchException e) {
+			} catch (InputMismatchException e) {
 				System.out.print("Please enter an id: ");
 				tryAgain = true;
 			}
 		}
 
-		calendar.displayEvent(id);
+		if (!calendar.displayEvent(id)) {
+			System.out.println("There is no such event.");
+		}
 	}
 
 }
+
