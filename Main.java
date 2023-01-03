@@ -8,7 +8,11 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 
-public static void main(String[] args) {
+public class Main {
+
+	private static java.sql.Connection con;
+
+	public static void main(String[] args) {
 
 		try {
 			Properties props = new Properties();
@@ -36,7 +40,7 @@ public static void main(String[] args) {
 					removeEvent(keyboard, calendar);
 					break;
 				case 3:
-					modifyEvent();
+					modifyEvent(keyboard, calendar);
 					break;
 
 				case 4:
@@ -147,16 +151,13 @@ public static void main(String[] args) {
 		return choice;
 	}
 
-	public static void getEventInfo(Scanner keyboard, Calendar calendar) {
-
+	private static Address receiveAddress(Scanner keyboard) {
 		boolean tryAgain = true;
 		int num = 0;
 		String streetName = null;
 		String city = null;
 		String state = null;
 		String zip = null;
-
-		// getting userInput to create new event = diff fields
 		System.out.println("\nPlease enter the address: ");
 		System.out.print("Street number: ");
 
@@ -212,8 +213,15 @@ public static void main(String[] args) {
 				keyboard.nextLine();
 			}
 		}
-
 		Address addr = new Address(num, streetName, city, state, zip);
+		return addr;
+
+	}
+
+	public static void getEventInfo(Scanner keyboard, Calendar calendar) {
+		// getting userInput to create new event
+
+		Address addr = receiveAddress(keyboard);
 
 		System.out.println("\nPlease enter your event details: ");
 
@@ -227,13 +235,76 @@ public static void main(String[] args) {
 
 		int min = getDuration(keyboard);
 
-		System.out.println("Add any additional notes about your event: ");
-		String notes = keyboard.nextLine();
+		String notes = receiveNotes(keyboard);
 
-		Appointment app = new Appointment(date, eventName, time, notes, min, addr, notes);
+		int categoryNum = getCategory(keyboard);
+		String category = getCategoryName(categoryNum);
+
+		Appointment app = new Appointment(date, eventName, time, notes, min, addr, category);
 		System.out.println("\nYou entered:\n" + app + "\n");
 
 		addEvent(app, calendar, keyboard);
+	}
+
+	public static int getCategory(Scanner keyboard) {
+		int category = 0;
+		boolean tryAgain = true;
+
+		System.out.println("Category: ");
+		System.out.println("1. Birthday");
+		System.out.println("2. Meeting");
+		System.out.println("3. Homework");
+		System.out.println("4. Test");
+		System.out.println("5. Appointment");
+		System.out.println("6. Anniversary");
+		System.out.println("7. Wedding");
+		System.out.println("8. Other");
+
+		while (tryAgain) {
+			tryAgain = false;
+			try {
+				category = keyboard.nextInt();
+				if (category < 1 || category > 8) {
+					System.out.print("Please enter a valid category: ");
+					category = keyboard.nextInt();
+					tryAgain = true;
+				}
+			} catch (InputMismatchException e) {
+				System.out.print("Please enter a valid category: ");
+				category = keyboard.nextInt();
+				tryAgain = true;
+			}
+		}
+		return category;
+
+	}
+
+	public static String getCategoryName(int number) {
+		switch (number) {
+		case 1:
+			return "Birthday";
+		case 2:
+			return "Meeting";
+		case 3:
+			return "Homework";
+		case 4:
+			return "Test";
+		case 5:
+			return "Appointment";
+		case 6:
+			return "Anniversary";
+		case 7:
+			return "Wedding";
+		default:
+			return "Other";
+		}
+
+	}
+
+	public static String receiveNotes(Scanner keyboard) {
+		System.out.println("Add any additional notes about your event: ");
+		String notes = keyboard.nextLine();
+		return notes;
 	}
 
 	public static LocalDate getDate(Scanner keyboard) {
@@ -368,12 +439,126 @@ public static void main(String[] args) {
 		}
 	}
 
-	public static void modifyEvent() {
-		// TODO Auto-generated method stub
+	public static void modifyEvent(Scanner keyboard, Calendar calendar) {
+		System.out.println("Which event would you like to modify: ");
+		displayEventTitles(calendar);
+		int eventId = 0;
+		boolean tryAgain = true;
+		while (tryAgain) {
+			try {
+				eventId = keyboard.nextInt();
+				keyboard.nextLine();
+				tryAgain = false;
+			} catch (InputMismatchException e) {
+				System.out.print("Please enter an id: ");
+				keyboard.nextLine();
+			}
+		}
+		if (!calendar.displayEvent(eventId)) {
+			System.out.println("There is no such event.");
+		} else {
+			boolean more = true;
+			while (more) {
+				System.out.println("What would you like to change: ");
+				System.out.println("1. Event Name");
+				System.out.println("2. Date");
+				System.out.println("3. Time");
+				System.out.println("4. Address");
+				System.out.println("5. Duration");
+				System.out.println("6. Notes");
+				System.out.println("7. Category");
 
-		// display arrayList of events with numbers, get index from user and give them
-		// options of what to change
-		//
+				int fieldToEdit;
+				tryAgain = true;
+				while (tryAgain) {
+					try {
+						fieldToEdit = keyboard.nextInt();
+						keyboard.nextLine();
+
+						if (fieldToEdit > 0 && fieldToEdit < 8) {
+							tryAgain = false;
+							switch (fieldToEdit) {
+							case 1:
+								modifyName(keyboard, eventId, calendar);
+								break;
+							case 2:
+								modifyDate(keyboard, eventId, calendar);
+								break;
+							case 3:
+								modifyTime(keyboard, eventId, calendar);
+								break;
+							case 4:
+								modifyAddress(keyboard, eventId, calendar);
+								break;
+							case 5:
+								modifyDuration(keyboard, eventId, calendar);
+								break;
+							case 6:
+								modifyNotes(keyboard, eventId, calendar);
+								break;
+							case 7:
+								modifyCategory(keyboard, eventId, calendar);
+								break;
+
+							}
+						} else {
+							System.out.print("Please enter a valid number: ");
+							keyboard.nextLine();
+						}
+
+					} catch (InputMismatchException e) {
+						System.out.print("Please enter a valid number: ");
+						keyboard.nextLine();
+					}
+				}
+
+			}
+
+		}
+
+	}
+
+	private static void modifyCategory(Scanner keyboard, int id, Calendar calendar) {
+		System.out.print("\nEnter the new ");
+		calendar.modifyCategory(id, getCategoryName(getCategory(keyboard)));
+
+	}
+
+	private static void modifyNotes(Scanner keyboard, int id, Calendar calendar) {
+		calendar.modifyDuration(id, receiveNotes(keyboard));
+
+	}
+
+	private static void modifyDuration(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new event duration:");
+		calendar.modifyDuration(id, getDuration(keyboard));
+
+	}
+
+	private static void modifyAddress(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new Address:");
+		Address address = receiveAddress(keyboard);
+		calendar.modifyAddress(id, address);
+
+	}
+
+	private static void modifyTime(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new time:");
+		LocalTime time = getTime(keyboard);
+		calendar.modifyTime(id, time);
+
+	}
+
+	private static void modifyDate(Scanner keyboard, int id, Calendar calendar) {
+		System.out.println("Enter the new date: ");
+		LocalDate date = getDate(keyboard);
+		calendar.modifyDate(id, date);
+	}
+
+	private static void modifyName(Scanner keyboard, int id, Calendar cal) {
+		System.out.println("Enter the new event name: ");
+		String name = keyboard.nextLine();
+		cal.modifyName(id, name);
 
 	}
 
@@ -401,18 +586,17 @@ public static void main(String[] args) {
 				keyboard.nextLine();
 			}
 		} while (tryAgain);
-		if(response == 1) {
-			//second column is the event name
-			calendar.displayEvents("date");
-		}else if(response == 2) {
-			//9th column is the date
-			calendar.displayEvents("category");
-		}else {
-			//12th column is the category 
+		if (response == 1) {
+			// second column is the event name
+			calendar.displayEvents("date, time");
+		} else if (response == 2) {
+			// 9th column is the date
+			calendar.displayEvents("categoryid");
+		} else {
+			// 12th column is the category
 			calendar.displayEvents("eventname");
 		}
 
-		
 	}
 
 	public static void displayEventTitles(Calendar calendar) {
@@ -436,7 +620,9 @@ public static void main(String[] args) {
 			}
 		}
 
-		calendar.displayEvent(id);
+		if (!calendar.displayEvent(id)) {
+			System.out.println("There is no such event.");
+		}
 	}
 
 }
